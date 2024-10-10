@@ -299,9 +299,9 @@
             function updateTotals() {
                 const discount = parseFloat($('#discountInput').val()) || 0;
                 const discountedAmount = subTotal - discount;
-                $('#subTotal').text(`$${subTotal.toFixed(2)}`);
-                $('#discountAmount').text(`$${discount.toFixed(2)}`);
-                $('#grandTotal').text(`$${discountedAmount.toFixed(2)}`);
+                $('#subTotal').text(`LKR ${subTotal.toFixed(2)}`);
+                $('#discountAmount').text(`LKR ${discount.toFixed(2)}`);
+                $('#grandTotal').text(`LKR ${discountedAmount.toFixed(2)}`);
             }
 
             $('#addItemButton').on('click', function() {
@@ -323,8 +323,8 @@
                               <span class="item-warranty">(Warranty: ${warranty} months)</span>
                             </td>
                             <td>${quantity}</td>
-                            <td>$${price}</td>
-                            <td>$${itemTotal}</td>
+                            <td>LKR ${price}</td>
+                            <td>LKR ${itemTotal}</td>
                         </tr>
                     `);
 
@@ -364,9 +364,9 @@
                 $('#billInvoiceNumber').text(invoiceNumber);
                 $('#invoiceDate').text(new Date().toLocaleDateString());
 
-                $('#invoiceSubTotal').text(`$${subTotal.toFixed(2)}`);
-                $('#invoiceDiscount').text(`$${discount.toFixed(2)}`);
-                $('#invoiceGrandTotal').text(`$${grandTotal.toFixed(2)}`);
+                $('#invoiceSubTotal').text(`LKR ${subTotal.toFixed(2)}`);
+                $('#invoiceDiscount').text(`LKR ${discount.toFixed(2)}`);
+                $('#invoiceGrandTotal').text(`LKR ${grandTotal.toFixed(2)}`);
 
                 // Generate barcode
                 JsBarcode("#barcodeCanvas", invoiceNumber, {
