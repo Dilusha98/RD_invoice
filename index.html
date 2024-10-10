@@ -154,6 +154,12 @@
             margin-bottom: -20px;
             margin-top: -20px;
         }
+        #signature{
+            margin-left: 115px;
+            margin-bottom: -35px;
+            width:100px;
+            height:100px;
+        }
     </style>
 </head>
 <body>
@@ -228,7 +234,7 @@
         </div>
         <div id="invoice" class="invoice-container">
             <div class="invoice-header">
-                <img src="RDlogo.png" id="logo">
+                <img src="RDlogo.png"d="logo">
                 <h1>RD Mart</h1>
                 <p>26, Aladeniya Road, Muruthalawa</p>
                 <p>Tel: 0775142377 / 0767173505 | Email: dilushasenevirathna@gmail.com</p>
@@ -265,8 +271,13 @@
                 <p>Grand Total: <span id="invoiceGrandTotal">$0.00</span></p>
             </div>
 
-            <div class="barcode-container">
-                <canvas id="barcodeCanvas"></canvas>
+            <div><img src="signature.png" id="signature"> </div>
+            <div class="row">
+                <div class="col-md-4"><span>Approved By : ............................</span></div>
+                <div class="col-md-4 barcode-container">
+                    <canvas id="barcodeCanvas"></canvas>
+                </div>
+                <div class="col-md-4"></div>
             </div>
 
             <div class="actions">
