@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Generator</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.0/JsBarcode.all.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .input-container {
+            width: 45%;
+        }
+        .invoice-container {
+            width: 50%;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .invoice-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .invoice-header h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+        .invoice-header p {
+            margin: 0;
+            font-size: 14px;
+            color: #555;
+        }
+        .invoice-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+        .invoice-info div {
+            width: 48%;
+        }
+        .invoice-info h2 {
+            font-size: 16px;
+            margin: 0 0 10px;
+            color: #333;
+        }
+        .invoice-info p {
+            margin: 0;
+            font-size: 14px;
+            color: #555;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table th, table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        table th {
+            background-color: #f4f4f4;
+            font-size: 14px;
+            color: #333;
+        }
+        table td {
+            font-size: 14px;
+        }
+        .item-name {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .item-imei {
+            font-size: 12px;
+            opacity: 0.6;
+            font-weight: normal;
+        }
+        .item-warranty {
+            font-size: 12px;
+            color: #666;
+        }
+        .total-section {
+            text-align: right;
+            margin-top: 20px;
+            font-size: 14px; /* Reduced font size */
+        }
+        .total-section p {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 4px 0; /* Reduced line spacing */
+        }
+        .actions {
+            text-align: center;
+            margin-top: 40px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .input-field {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .input-field input, #itemSelect {
+            width: calc(100% - 150px); /* Adjust input width to match */
+            padding: 8px;
+        }
+        label {
+            font-size: 12px;
+            opacity: 0.8;
+            min-width: 140px; /* For consistent label width */
+        }
+        .barcode-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .discount-section {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .discount-section input {
+            width: 150px;
+            padding: 5px;
+        }
+        #logo{
+            width:100px;
+            height:100px;
+            margin-bottom: -20px;
+            margin-top: -20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="input-container">
+            <h2>Generate Invoice</h2>
+            <div class="input-field">
+                <label>Customer Name:</label>
+                <input type="text" id="customerNameInput">
+            </div>
+            <div class="input-field">
+                <label>Customer Mobile:</label>
+                <input type="text" id="customerMobileInput" placeholder="Enter Mobile Number">
+            </div>
+            <div class="input-field">
+                <label>Customer Address:</label>
+                <input type="text" id="customerAddressInput1" placeholder="Line 1">
+                <input type="text" id="customerAddressInput2" placeholder="Line 2">
+            </div>
+            <div class="input-field">
+                <label>Invoice Number:</label>
+                <input type="text" id="invoiceNumberInput">
+            </div>
+
+            <div class="input-field">
+                <label>Item:</label>
+                <select id="itemSelect">
+                    <option value="" disabled selected>Select an item</option>
+                    <option value="Item 1,150">Item 1</option>
+                    <option value="Item 2,100">Item 2</option>
+                </select>
+            </div>
+
+            <div class="input-field">
+                <label>IMEI:</label>
+                <input type="text" id="imeiInput" placeholder="Enter IMEI">
+            </div>
+            <div class="input-field">
+                <label>Quantity:</label>
+                <input type="number" id="quantityInput" min="1" placeholder="Enter Quantity">
+            </div>
+            <div class="input-field">
+                <label>Warranty Period (in months):</label>
+                <input type="number" id="warrantyInput" min="0" placeholder="Enter Warranty Period">
+            </div>
+
+            <button id="addItemButton">Add Item</button>
+            <h3>Selected Items</h3>
+            <table id="selectedItemsTable">
+                <thead>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>IMEI</th>
+                    </tr>
+                </thead>
+                <tbody id="selectedItemsBody"></tbody>
+            </table>
+
+            <div class="discount-section">
+                <label>Discount Amount:</label>
+                <input type="number" id="discountInput" min="0" placeholder="Enter Discount">
+            </div>
+
+            <div class="total-section">
+                <p>Sub Total: <span id="subTotal">$0.00</span></p>
+                <p>Discount: <span id="discountAmount">$0.00</span></p>
+                <p>Grand Total: <span id="grandTotal">$0.00</span></p>
+            </div>
+
+            <button id="generateInvoiceButton">Generate Invoice</button>
+        </div>
+        <div id="invoice" class="invoice-container">
+            <div class="invoice-header">
+                <img src="RDlogo.png" id="logo">
+                <h1>RD Mart</h1>
+                <p>26, Aladeniya Road, Muruthalawa</p>
+                <p>Tel: 0775142377 / 0767173505 | Email: dilushasenevirathna@gmail.com</p>
+                <h4>Invoice</h4>
+            </div>
+
+            <div class="invoice-info">
+                <div>
+                    <h2>Bill To:</h2>
+                    <p id="billCustomerDetails">[Customer Name], [Customer Mobile],<br>[Customer Address]</p>
+                </div>
+                <div>
+                    <h2>Invoice Details:</h2>
+                    <p>Invoice Date: <strong id="invoiceDate">[Invoice Date]</strong></p>
+                    <p>Invoice Number: <strong id="billInvoiceNumber">[Invoice Number]</strong></p>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Unit</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="invoiceItems"></tbody>
+            </table>
+
+            <div class="total-section">
+                <p>Sub Total: <span id="invoiceSubTotal">$0.00</span></p>
+                <p>Discount: <span id="invoiceDiscount">$0.00</span></p>
+                <p>Grand Total: <span id="invoiceGrandTotal">$0.00</span></p>
+            </div>
+
+            <div class="barcode-container">
+                <canvas id="barcodeCanvas"></canvas>
+            </div>
+
+            <div class="actions">
+                <button id="downloadPDF">Download as PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#itemSelect').select2({
+                placeholder: "Select an item",
+                allowClear: true
+            }).css('width', 'calc(100% - 150px)'); // Adjusting width to align with other inputs
+
+            let total = 0;
+            let subTotal = 0;
+
+            function updateTotals() {
+                const discount = parseFloat($('#discountInput').val()) || 0;
+                const discountedAmount = subTotal - discount;
+                $('#subTotal').text(`$${subTotal.toFixed(2)}`);
+                $('#discountAmount').text(`$${discount.toFixed(2)}`);
+                $('#grandTotal').text(`$${discountedAmount.toFixed(2)}`);
+            }
+
+            $('#addItemButton').on('click', function() {
+                const selectedItem = $('#itemSelect').val();
+                const imei = $('#imeiInput').val().trim();
+                const quantity = $('#quantityInput').val();
+                const warranty = $('#warrantyInput').val();
+
+                if (selectedItem && imei && quantity) {
+                    const [name, price] = selectedItem.split(',');
+                    const itemTotal = quantity * price;
+                    subTotal += itemTotal;
+
+                    $('#invoiceItems').append(`
+                        <tr>
+                            <td>
+                              <span class="item-name">${name}</span>
+                              <span class="item-imei">(${imei})</span><br>
+                              <span class="item-warranty">(Warranty: ${warranty} months)</span>
+                            </td>
+                            <td>${quantity}</td>
+                            <td>$${price}</td>
+                            <td>$${itemTotal}</td>
+                        </tr>
+                    `);
+
+                    $('#selectedItemsBody').append(`
+                        <tr>
+                            <td>${name}</td>
+                            <td>${quantity}</td>
+                            <td>${imei}</td>
+                        </tr>
+                    `);
+
+                    updateTotals();
+
+                    // Clear input fields after adding
+                    $('#imeiInput').val('');
+                    $('#quantityInput').val('');
+                } else {
+                    alert("Please enter IMEI number and quantity.");
+                }
+            });
+
+            $('#discountInput').on('input', function() {
+                updateTotals();
+            });
+
+            $('#generateInvoiceButton').on('click', function() {
+                const customerName = $('#customerNameInput').val();
+                const customerMobile = $('#customerMobileInput').val();
+                const customerAddress1 = $('#customerAddressInput1').val();
+                const customerAddress2 = $('#customerAddressInput2').val();
+                const invoiceNumber = $('#invoiceNumberInput').val();
+                const discount = parseFloat($('#discountInput').val()) || 0;
+
+                const grandTotal = subTotal - discount;
+
+                $('#billCustomerDetails').html(`${customerName},<br>${customerAddress1}<br>${customerAddress2}</br>${customerMobile}`);
+                $('#billInvoiceNumber').text(invoiceNumber);
+                $('#invoiceDate').text(new Date().toLocaleDateString());
+
+                $('#invoiceSubTotal').text(`$${subTotal.toFixed(2)}`);
+                $('#invoiceDiscount').text(`$${discount.toFixed(2)}`);
+                $('#invoiceGrandTotal').text(`$${grandTotal.toFixed(2)}`);
+
+                // Generate barcode
+                JsBarcode("#barcodeCanvas", invoiceNumber, {
+                    format: "CODE128",
+                    width: 2,
+                    height: 40,
+                    displayValue: false
+                });
+
+                $('#invoice').show();
+            });
+
+            $('#downloadPDF').on('click', function() {
+                const invoiceElement = document.getElementById('invoice');
+
+                // Hide the action buttons before capturing the screenshot
+                $('.actions').hide();
+
+                const { jsPDF } = window.jspdf;
+
+                html2canvas(invoiceElement, {
+                    backgroundColor: "#fff", // Set a white background for the canvas
+                    scale: 2 // Adjust scale for better quality
+                }).then(canvas => {
+                    const pdf = new jsPDF('p', 'pt', 'a4');
+                    const imgData = canvas.toDataURL('image/png');
+
+                    const imgWidth = pdf.internal.pageSize.getWidth();
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                    pdf.save(`invoice_${new Date().toLocaleDateString()}.pdf`);
+
+                    // Show the action buttons back
+                    $('.actions').show();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
