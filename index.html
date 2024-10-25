@@ -189,7 +189,7 @@
                 <select id="itemSelect">
                     <option value="" disabled selected>Select an item</option>
                     <option value="Google Pixel 30W Adapter,2500">Google Pixel 30W Adapter</option>
-                    <option value="iPhone 11Pro - 256gb (Refurbished),50000">iPhone 11Pro - 256gb (Refurbished)</option>
+                    <option value="iPhone 11Pro - 256gb (Refurbished),125000">iPhone 11Pro - 256gb (Refurbished)</option>
                     <option value="Item 2,100">Item 2</option>
                 </select>
             </div>
@@ -225,9 +225,15 @@
                 <input type="number" id="discountInput" min="0" placeholder="Enter Discount">
             </div>
 
+            <div class="discount-section">
+                <label>Advance Payment:</label>
+                <input type="number" id="advancePaymentInput" min="0" placeholder="Enter Advance Payment">
+            </div>
+
             <div class="total-section">
                 <p>Sub Total: <span id="subTotal">LKR 0.00</span></p>
                 <p>Discount: <span id="discountAmount">LKR 0.00</span></p>
+                <p>Advance Payment: <span id="advancePaymentAmount">LKR 0.00</span></p>
                 <p>Grand Total: <span id="grandTotal">LKR 0.00</span></p>
             </div>
 
@@ -269,6 +275,7 @@
             <div class="total-section">
                 <p>Sub Total: <span id="invoiceSubTotal">LKR 0.00</span></p>
                 <p>Discount: <span id="invoiceDiscount">LKR 0.00</span></p>
+                <p>Advance Payment: <span id="invoiceAdvancePayment">LKR 0.00</span></p>
                 <p>Grand Total: <span id="invoiceGrandTotal">LKR 0.00</span></p>
             </div>
 
@@ -292,18 +299,22 @@
             $('#itemSelect').select2({
                 placeholder: "Select an item",
                 allowClear: true
-            }).css('width', 'calc(100% - 150px)'); // Adjusting width to align with other inputs
+            }).css('width', 'calc(100% - 150px)'); 
 
-            let total = 0;
             let subTotal = 0;
 
             function updateTotals() {
                 const discount = parseFloat($('#discountInput').val()) || 0;
-                const discountedAmount = subTotal - discount;
+                const advancePayment = parseFloat($('#advancePaymentInput').val()) || 0;
+                const finalTotal = subTotal - discount - advancePayment;
+
                 $('#subTotal').text(`LKR ${subTotal.toFixed(2)}`);
                 $('#discountAmount').text(`LKR ${discount.toFixed(2)}`);
-                $('#grandTotal').text(`LKR ${discountedAmount.toFixed(2)}`);
+                $('#advancePaymentAmount').text(`LKR ${advancePayment.toFixed(2)}`);
+                $('#grandTotal').text(`LKR ${finalTotal.toFixed(2)}`);
             }
+
+            $('#discountInput, #advancePaymentInput').on('input', updateTotals);
 
             $('#addItemButton').on('click', function() {
                 const selectedItem = $('#itemSelect').val();
@@ -339,16 +350,11 @@
 
                     updateTotals();
 
-                    // Clear input fields after adding
                     $('#imeiInput').val('');
                     $('#quantityInput').val('');
                 } else {
                     alert("Please enter IMEI number and quantity.");
                 }
-            });
-
-            $('#discountInput').on('input', function() {
-                updateTotals();
             });
 
             $('#generateInvoiceButton').on('click', function() {
@@ -358,8 +364,9 @@
                 const customerAddress2 = $('#customerAddressInput2').val();
                 const invoiceNumber = $('#invoiceNumberInput').val();
                 const discount = parseFloat($('#discountInput').val()) || 0;
+                const advancePayment = parseFloat($('#advancePaymentInput').val()) || 0;
 
-                const grandTotal = subTotal - discount;
+                const grandTotal = subTotal - discount - advancePayment;
 
                 $('#billCustomerDetails').html(`${customerName},<br>${customerAddress1}<br>${customerAddress2}</br>${customerMobile}`);
                 $('#billInvoiceNumber').text(invoiceNumber);
@@ -367,9 +374,9 @@
 
                 $('#invoiceSubTotal').text(`LKR ${subTotal.toFixed(2)}`);
                 $('#invoiceDiscount').text(`LKR ${discount.toFixed(2)}`);
+                $('#invoiceAdvancePayment').text(`LKR ${advancePayment.toFixed(2)}`);
                 $('#invoiceGrandTotal').text(`LKR ${grandTotal.toFixed(2)}`);
 
-                // Generate barcode
                 JsBarcode("#barcodeCanvas", invoiceNumber, {
                     format: "CODE128",
                     width: 2,
@@ -383,14 +390,13 @@
             $('#downloadPDF').on('click', function() {
                 const invoiceElement = document.getElementById('invoice');
 
-                // Hide the action buttons before capturing the screenshot
                 $('.actions').hide();
 
                 const { jsPDF } = window.jspdf;
 
                 html2canvas(invoiceElement, {
-                    backgroundColor: "#fff", // Set a white background for the canvas
-                    scale: 2 // Adjust scale for better quality
+                    backgroundColor: "#fff",
+                    scale: 2
                 }).then(canvas => {
                     const pdf = new jsPDF('p', 'pt', 'a4');
                     const imgData = canvas.toDataURL('image/png');
@@ -401,7 +407,6 @@
                     pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
                     pdf.save(`invoice_${new Date().toLocaleDateString()}.pdf`);
 
-                    // Show the action buttons back
                     $('.actions').show();
                 });
             });
